@@ -4,15 +4,11 @@ import arrayDestructuring.Converter;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.script.Invocable;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 import java.io.IOException;
-import java.util.Objects;
 
-import static org.junit.Assert.*;
-
+/**
+ * Class for testing
+ */
 public class ConverterTest {
 
     private String getPath(int testNumber) {
@@ -26,6 +22,7 @@ public class ConverterTest {
     private void setActual(int testNumber) {
         try {
             actual = Converter.convert(getPath(testNumber));
+            System.out.println(actual); //todo remove
             return;
         } catch (IOException e) {
             //todo
@@ -97,6 +94,17 @@ public class ConverterTest {
     }
 
     @Test
+    public void test4() {
+        int testNumber = 4;
+
+        setActual(testNumber);
+
+        Assert.assertTrue(containsInOrder("var arr1 = ", "var [a, b] = arr1"));
+        Assert.assertTrue(containsInOrder("var arr2 = ", "var [, , c, d] = arr2"));
+    }
+
+
+    @Test
     public void test5() {
         int testNumber = 5;
 
@@ -104,5 +112,16 @@ public class ConverterTest {
 
         Assert.assertTrue(contains("var [a, , , d] = arr"));
         Assert.assertTrue(contains("var [b, c] = arr[1]"));
+    }
+
+    @Test
+    public void test6() {
+        int testNumber = 6;
+
+        setActual(testNumber);
+
+        Assert.assertTrue(containsInOrder("var arr = [1, 2, 3];", "var [, aa, ba] = arr;"));
+        Assert.assertTrue(containsInOrder("var arr = [1, 2, 3];", "var [, a, b] = arr;"));
+        Assert.assertTrue(containsInOrder("var darr = [3, 2, 1];", "var [, _a, _b] = darr;"));
     }
 }

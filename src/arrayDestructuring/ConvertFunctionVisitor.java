@@ -4,7 +4,17 @@ import jdk.nashorn.internal.ir.*;
 import jdk.nashorn.internal.ir.visitor.NodeVisitor;
 
 import java.util.*;
+import java.util.function.Consumer;
 
+/**
+ * Class is used to transform variables definition.
+ * <p>
+ * Example:
+ * var variable1 = array[0]
+ * var variable2 = array[1];
+ * Transforms to:
+ * var [variable1, variable2] = array;
+ */
 class ConvertFunctionVisitor extends NodeVisitor<LexicalContext> {
     /**
      * Constructor
@@ -20,6 +30,7 @@ class ConvertFunctionVisitor extends NodeVisitor<LexicalContext> {
 
     private Deque<BlockDefinition> blocks = new ArrayDeque<>();
 
+    //todo move
     class Pair implements Comparable<Pair> {
         String name;
         int index;
@@ -40,6 +51,10 @@ class ConvertFunctionVisitor extends NodeVisitor<LexicalContext> {
         }
     }
 
+    /**
+     * Return transformed code
+     * @return transformed code
+     */
     StringBuilder getString() {
         return result;
     }
@@ -47,11 +62,7 @@ class ConvertFunctionVisitor extends NodeVisitor<LexicalContext> {
     private void append(String... s) {
         for (String value : s) {
             if (!blocks.isEmpty()) {
-                if (blocks.getFirst().beforeFirstDefinition) {
-                    blocks.getFirst().before.append(value);
-                } else {
-                    blocks.getFirst().after.append(value);
-                }
+                blocks.getFirst().text.append(value);
             } else {
                 result.append(value);
             }
@@ -65,7 +76,7 @@ class ConvertFunctionVisitor extends NodeVisitor<LexicalContext> {
             return false;
         }
 
-        append(indent.toString(), "function ", functionNode.getName(), "(");
+        append(indent.toString(), "function ", getLocaleName(functionNode), "(");
 
         List<IdentNode> parameters = functionNode.getParameters();
         for (int i = 0; i < parameters.size() - 1; i++) {
@@ -111,8 +122,10 @@ class ConvertFunctionVisitor extends NodeVisitor<LexicalContext> {
 
     @Override
     public boolean enterBlock(Block block) {
-        append("{\n");
-        indent.append("    ");
+        if (!blocks.isEmpty()) {
+            append("{\n");
+            indent.append("  ");
+        }
         blocks.addFirst(new BlockDefinition());
         return true;
     }
@@ -121,16 +134,16 @@ class ConvertFunctionVisitor extends NodeVisitor<LexicalContext> {
     public Node leaveBlock(Block block) {
         BlockDefinition current = Objects.requireNonNull(blocks.pollFirst());
 
-        append(current.before.toString());
+        append(current.arrayDefinition.toString());
         append(destructuring(current.variables));
         if (!current.variables.isEmpty()) append("\n");
-        append(current.after.toString());
+        append(current.text.toString());
 
-        if (indent.length() > 0) {
-            indent.delete(indent.length() - 4, indent.length());
+        if (!blocks.isEmpty()) {
+            indent.delete(indent.length() - 2, indent.length());
+            append(indent.toString());
+            append("}\n");
         }
-        append(indent.toString());
-        append("}\n");
         return block;
     }
 
@@ -195,6 +208,7 @@ class ConvertFunctionVisitor extends NodeVisitor<LexicalContext> {
     @Override
     public boolean enterVarNode(VarNode varNode) {
         String name = varNode.getName().getName();
+
         if (varNode.getAssignmentSource() instanceof IndexNode) {
             IndexNode indexNode = (IndexNode) varNode.getAssignmentSource();
             String array = indexNode.getBase().toString(false);
@@ -204,8 +218,16 @@ class ConvertFunctionVisitor extends NodeVisitor<LexicalContext> {
                 current.variables.put(array, new ArrayList<>());
             }
 
-            current.beforeFirstDefinition = false;
             current.variables.get(array).add(new Pair(name, Integer.parseInt(indexNode.getIndex().toString(false))));
+        } else if (varNode.getAssignmentSource() instanceof LiteralNode && ((LiteralNode) varNode.getAssignmentSource()).isArray()) {
+            Consumer<String> append = blocks.getFirst().arrayDefinition::append;
+            append.accept(indent.toString());
+            append.accept("var ");
+            append.accept(name);
+            append.accept(" = ");
+            append.accept(varNode.getAssignmentSource().toString(false));//todo add flag for arrays def
+            append.accept(";\n");
+//            varNode.getAssignmentSource().accept(this);
         } else {
             if (!varNode.isFunctionDeclaration()) {
                 append(indent.toString(), "var ");
@@ -252,5 +274,14 @@ class ConvertFunctionVisitor extends NodeVisitor<LexicalContext> {
 
     private <T> T getLast(List<T> list) {
         return list.get(list.size() - 1);
+    }
+
+    private String getLocaleName(FunctionNode node) {
+        String fullName = node.getName();
+        int index = fullName.length() - 1;
+        while (index >= 0 && fullName.charAt(index) != '#') {
+            index--;
+        }
+        return fullName.substring(index + 1);
     }
 }
