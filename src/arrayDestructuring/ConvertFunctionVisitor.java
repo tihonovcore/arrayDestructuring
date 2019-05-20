@@ -30,29 +30,9 @@ class ConvertFunctionVisitor extends NodeVisitor<LexicalContext> {
 
     private Deque<BlockDefinition> blocks = new ArrayDeque<>();
 
-    //todo move
-    class Pair implements Comparable<Pair> {
-        String name;
-        int index;
-
-        Pair(String name, int index) {
-            this.name = name;
-            this.index = index;
-        }
-
-        @Override
-        public String toString() {
-            return "{" + name + ", " + index + "}";
-        }
-
-        @Override
-        public int compareTo(Pair other) {
-            return index - other.index;
-        }
-    }
-
     /**
      * Return transformed code
+     *
      * @return transformed code
      */
     StringBuilder getString() {
@@ -227,7 +207,6 @@ class ConvertFunctionVisitor extends NodeVisitor<LexicalContext> {
             append.accept(" = ");
             append.accept(varNode.getAssignmentSource().toString(false));//todo add flag for arrays def
             append.accept(";\n");
-//            varNode.getAssignmentSource().accept(this);
         } else {
             if (!varNode.isFunctionDeclaration()) {
                 append(indent.toString(), "var ");
@@ -283,5 +262,25 @@ class ConvertFunctionVisitor extends NodeVisitor<LexicalContext> {
             index--;
         }
         return fullName.substring(index + 1);
+    }
+
+    class Pair implements Comparable<Pair> {
+        String name;
+        int index;
+
+        Pair(String name, int index) {
+            this.name = name;
+            this.index = index;
+        }
+
+        @Override
+        public String toString() {
+            return "{" + name + ", " + index + "}";
+        }
+
+        @Override
+        public int compareTo(Pair other) {
+            return index - other.index;
+        }
     }
 }

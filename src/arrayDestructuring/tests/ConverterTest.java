@@ -1,10 +1,9 @@
 package arrayDestructuring.tests;
 
+import arrayDestructuring.ConvertException;
 import arrayDestructuring.Converter;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.io.IOException;
 
 /**
  * Class for testing
@@ -19,15 +18,8 @@ public class ConverterTest {
 
     private StringBuilder actual = new StringBuilder();
 
-    private void setActual(int testNumber) {
-        try {
-            actual = Converter.convert(getPath(testNumber));
-            System.out.println(actual); //todo remove
-            return;
-        } catch (IOException e) {
-            //todo
-        }
-        actual = new StringBuilder();
+    private void setActual(int testNumber) throws ConvertException {
+        actual = Converter.convert(getPath(testNumber));
     }
 
     private boolean contains(String value) {
@@ -57,50 +49,73 @@ public class ConverterTest {
     public void test1() {
         int testNumber = 1;
 
-        setActual(testNumber);
+        System.out.print("Test " + testNumber + ": ");
+        try {
+            setActual(testNumber);
 
-        Assert.assertTrue(contains("a + b + 2"));
-        Assert.assertTrue(contains("var a"));
-        Assert.assertTrue(contains("var b"));
-        Assert.assertTrue(contains("var c"));
+            Assert.assertTrue(contains("a + b + 2"));
+            Assert.assertTrue(contains("var a"));
+            Assert.assertTrue(contains("var b"));
+            Assert.assertTrue(contains("var c"));
+        } catch (ConvertException e) {
+            Assert.fail("Error while testing: " + e.getMessage());
+        }
+        System.out.println("OK");
     }
 
     @Test
     public void test2() {
         int testNumber = 2;
 
-        setActual(testNumber);
+        System.out.print("Test " + testNumber + ": ");
+        try {
+            setActual(testNumber);
 
-        Assert.assertTrue(containsInOrder("var x = [1, 2, 3, 4, 5]", "var [y, xx, z] = x"));
-        Assert.assertTrue(containsInOrder("var x = [1, 2, 3, 4, 5]", "y = x[1]"));
-        Assert.assertTrue(contains("bbb()"));
-        Assert.assertTrue(contains("ddd()"));
-        Assert.assertTrue(contains("var x = [1, 2, 3, 4, 5]"));
-
+            Assert.assertTrue(containsInOrder("var x = [1, 2, 3, 4, 5]", "var [y, xx, z] = x"));
+            Assert.assertTrue(containsInOrder("var x = [1, 2, 3, 4, 5]", "y = x[1]"));
+            Assert.assertTrue(contains("bbb()"));
+            Assert.assertTrue(contains("ddd()"));
+            Assert.assertTrue(contains("var x = [1, 2, 3, 4, 5]"));
+        } catch (ConvertException e) {
+            Assert.fail("Error while testing: " + e.getMessage());
+        }
+        System.out.println("OK");
     }
 
     @Test
     public void test3() {
         int testNumber = 3;
 
-        setActual(testNumber);
+        System.out.print("Test " + testNumber + ": ");
+        try {
+            setActual(testNumber);
 
-        Assert.assertTrue(contains("var [a, b] = arr"));
-        Assert.assertTrue(contains("var [a, , b] = arr"));
-        Assert.assertTrue(contains("var [b, , a] = arr"));
-        Assert.assertTrue(contains("var [, a, b] = arr"));
-        Assert.assertTrue(contains("var [, , a"));
-        Assert.assertTrue(contains("var [, , b"));
+            Assert.assertTrue(contains("var [a, b] = arr"));
+            Assert.assertTrue(contains("var [a, , b] = arr"));
+            Assert.assertTrue(contains("var [b, , a] = arr"));
+            Assert.assertTrue(contains("var [, a, b] = arr"));
+            Assert.assertTrue(contains("var [, , a"));
+            Assert.assertTrue(contains("var [, , b"));
+        } catch (ConvertException e) {
+            Assert.fail("Error while testing: " + e.getMessage());
+        }
+        System.out.println("OK");
     }
 
     @Test
     public void test4() {
         int testNumber = 4;
 
-        setActual(testNumber);
+        System.out.print("Test " + testNumber + ": ");
+        try {
+            setActual(testNumber);
 
-        Assert.assertTrue(containsInOrder("var arr1 = ", "var [a, b] = arr1"));
-        Assert.assertTrue(containsInOrder("var arr2 = ", "var [, , c, d] = arr2"));
+            Assert.assertTrue(containsInOrder("var arr1 = ", "var [a, b] = arr1"));
+            Assert.assertTrue(containsInOrder("var arr2 = ", "var [, , c, d] = arr2"));
+        } catch (ConvertException e) {
+            Assert.fail("Error while testing: " + e.getMessage());
+        }
+        System.out.println("OK");
     }
 
 
@@ -108,20 +123,45 @@ public class ConverterTest {
     public void test5() {
         int testNumber = 5;
 
-        setActual(testNumber);
+        System.out.print("Test " + testNumber + ": ");
+        try {
+            setActual(testNumber);
 
-        Assert.assertTrue(contains("var [a, , , d] = arr"));
-        Assert.assertTrue(contains("var [b, c] = arr[1]"));
+            Assert.assertTrue(contains("var [a, , , d] = arr"));
+            Assert.assertTrue(contains("var [b, c] = arr[1]"));
+        } catch (ConvertException e) {
+            Assert.fail("Error while testing: " + e.getMessage());
+        }
+        System.out.println("OK");
     }
 
     @Test
     public void test6() {
         int testNumber = 6;
 
-        setActual(testNumber);
+        System.out.print("Test " + testNumber + ": ");
+        try {
+            setActual(testNumber);
 
-        Assert.assertTrue(containsInOrder("var arr = [1, 2, 3];", "var [, aa, ba] = arr;"));
-        Assert.assertTrue(containsInOrder("var arr = [1, 2, 3];", "var [, a, b] = arr;"));
-        Assert.assertTrue(containsInOrder("var darr = [3, 2, 1];", "var [, _a, _b] = darr;"));
+            Assert.assertTrue(containsInOrder("var arr = [1, 2, 3];", "var [, aa, ba] = arr;"));
+            Assert.assertTrue(containsInOrder("var arr = [1, 2, 3];", "var [, a, b] = arr;"));
+            Assert.assertTrue(containsInOrder("var darr = [3, 2, 1];", "var [, _a, _b] = darr;"));
+        } catch (ConvertException e) {
+            Assert.fail("Error while testing: " + e.getMessage());
+        }
+        System.out.println("OK");
+    }
+
+    @Test(expected = ConvertException.class)
+    public void test7() throws ConvertException {
+        int testNumber = 7;
+
+        System.out.print("Test " + testNumber + ": ");
+        try {
+            setActual(testNumber);
+        } catch (ConvertException e) {
+            System.out.println("OK");
+            throw e;
+        }
     }
 }
