@@ -147,7 +147,7 @@ class ConvertFunctionVisitor extends NodeVisitor<LexicalContext> {
                 } else if (index < pair.index) {
                     result.append(", ");
                     i--;
-                } else if (index > pair.index) {
+                } else {
                     appendLater.append(indent).append("var [");
                     appendLater.append(", ".repeat(Math.max(0, pair.index)));
                     appendLater.append(pair.name).append("] = ").append(key).append("\n");
@@ -208,7 +208,7 @@ class ConvertFunctionVisitor extends NodeVisitor<LexicalContext> {
             append.accept(varNode.getAssignmentSource().toString(false));//todo add flag for arrays def
             append.accept(";\n");
         } else {
-            if (!varNode.isFunctionDeclaration()) {
+            if (!(varNode.getAssignmentSource() instanceof FunctionNode)) {
                 append(indent.toString(), "var ");
                 append(name, " = ");
             }

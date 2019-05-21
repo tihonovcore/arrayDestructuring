@@ -8,13 +8,13 @@ import jdk.nashorn.internal.runtime.ErrorManager;
 import jdk.nashorn.internal.runtime.Source;
 import jdk.nashorn.internal.runtime.options.Options;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 /**
- * Find variable initialisation by array and transfrom them.
+ * Find variable initialisation by array and transform them.
+ * <p>
  * Example:
  * var variable1 = array[0]
  * var variable2 = array[1];
@@ -23,6 +23,8 @@ import java.io.PrintWriter;
  */
 public class Converter {
     /**
+     * Run {@code convert(String path)} and save result as [sourceName].out.js
+     *
      * @param args args[0] should contains filename for converting
      *             cannot be null, should have only one not-null element
      * @throws ConvertException throws if something wrong.
@@ -31,6 +33,7 @@ public class Converter {
      *                          <li>{@code args.length} != 1</li>
      *                          <li>{@code args[0]} == null</li>
      *                          <li>error while reading</li>
+     *                          <li>error while writing</li>
      *                          <li>error while parsing</li>
      *                          </ul>
      */
@@ -38,7 +41,13 @@ public class Converter {
         if (args == null || args.length != 1 || args[0] == null) {
             throw new ConvertException("Something wrong with String[] args");
         }
-        System.out.print(convert(args[0]));
+
+        String output = args[0].replaceAll(".js", ".out.js");
+        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(output))) {
+            writer.write(convert(args[0]).toString());
+        } catch (IOException | ConvertException e) {
+            throw new ConvertException(e.getMessage());
+        }
     }
 
     /**

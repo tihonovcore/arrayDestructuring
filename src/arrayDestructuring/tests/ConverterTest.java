@@ -5,15 +5,15 @@ import arrayDestructuring.Converter;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.nio.file.Paths;
+
 /**
  * Class for testing
  */
 public class ConverterTest {
 
     private String getPath(int testNumber) {
-        //todo remove harcode path
-        String path = "/home/tihonovcore/IdeaProjects/arrayDestructuring/src/arrayDestructuring/tests/input";
-        return path + "/test" + testNumber + ".js";
+        return Paths.get("./arrayDestructuring/tests/input/test" + testNumber + ".js").toString();
     }
 
     private StringBuilder actual = new StringBuilder();
